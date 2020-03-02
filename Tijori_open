@@ -1,0 +1,173 @@
+Option Explicit
+Sub search()
+    Dim lk As String
+    Dim bot As WebDriver
+    Dim elm As WebElement
+    Dim elms As WebElements
+    Set bot = New WebDriver
+    bot.Start "chrome"
+    lk = Sheet2.Range("E2").Value
+    bot.Get lk
+      
+    Set elms = bot.FindElementsByClass("details-control")
+    On Error Resume Next
+    For Each elm In elms
+    If InStr(1, elm.Text, "+") Then
+        
+    elm.Click
+    
+    End If
+    
+    Next elm
+    
+    Set elms = bot.FindElementsByTag("tr")
+    
+    On Error Resume Next
+    For Each elm In elms
+    If InStr(1, elm.Text, "+") Then
+    elm.Click
+
+    
+    End If
+    Next elm
+    
+    Dim t As String
+    t = 0
+    Set elms = bot.FindElementsByTag("td")
+    For Each elm In elms
+    If elm.Text = "" Then GoTo nt
+    t = t + 1
+    Sheet2.Range("A" & t).Value = elm.Text
+nt:
+    Next elm
+    
+    t = 0
+    Set elms = bot.FindElementsByTag("th")
+    For Each elm In elms
+    If elm.Text = "" Then GoTo nt1
+    t = t + 1
+    Debug.Print elm.Text = ""
+    Sheet2.Range("b" & t).Value = elm.Text
+nt1:
+    Next elm
+    
+    Call copy
+    MsgBox "Done"
+End Sub
+Sub copy()
+Dim k As Long
+Dim c As Long, r As Long
+c = 1
+k = 1
+On Error Resume Next
+For r = 1 To Sheet2.Cells(Sheet2.Rows.Count, "A").End(xlUp).Row
+    If (IsNumeric(Sheet2.Range("A" & r).Value) = False) Then
+    If Sheet2.Range("A" & r).Value = "n/a" Then GoTo mido
+    If InStr(1, Sheet2.Range("A" & r), "Rs") > 0 Then GoTo mido
+    If InStr(1, Sheet2.Range("A" & r), "Lakh") > 0 Then GoTo mido
+    If InStr(1, Sheet2.Range("A" & r), "(Cr") > 0 Then GoTo prev
+    If InStr(1, Sheet2.Range("A" & r), "Cr") > 0 Then GoTo mido
+    If InStr(1, Sheet2.Range("A" & r), "$/BL") > 0 Then GoTo mido
+prev:
+    c = 1
+    Sheet1.Cells(k, c).Value = Sheet2.Range("A" & r).Value
+    k = k + 1
+    GoTo lst
+
+    Else
+mido:
+    Sheet1.Cells(k - 1, c + 1).Value = Sheet2.Range("A" & r).Value
+    c = c + 1
+    End If
+lst:
+Next r
+Call ladd
+
+End Sub
+
+Sub ladd()
+
+Dim k As Long
+Dim c As Long, r As Long
+On Error Resume Next
+    For r = Sheet1.Cells(Sheet1.Rows.Count, "A").End(xlUp).Row To 1 Step -1
+
+    If InStr(1, Sheet1.Cells(r, 1).Value, "Net Sales") > 0 Then
+    Sheet1.Cells(r, 1).EntireRow.Insert
+    Sheet1.Cells(r, 1).Value = "Quaterly Result"
+    Sheet1.Cells(r, 1).Interior.ColorIndex = 37
+    GoTo Nxt
+    End If
+    Next r
+Nxt:
+    k = r
+    For r = k To 1 Step -1
+    If InStr(1, Sheet1.Cells(r, 1).Value, "Operational Ratios -") > 0 Then
+    Sheet1.Cells(r, 1).EntireRow.Insert
+    Sheet1.Cells(r, 1).Value = "Ratios"
+    Sheet1.Cells(r, 1).Interior.ColorIndex = 37
+    GoTo Nxt1
+    End If
+    Next r
+Nxt1:
+    k = r
+    For r = k To 1 Step -1
+    If InStr(1, Sheet1.Cells(r, 1).Value, "Cash from Operating Activity") > 0 Then
+    Sheet1.Cells(r, 1).EntireRow.Insert
+    Sheet1.Cells(r, 1).Value = "Cash Flow"
+    Sheet1.Cells(r, 1).Interior.ColorIndex = 37
+    GoTo Nxt2
+    End If
+    Next r
+Nxt2:
+    k = r
+    For r = k To 1 Step -1
+    If InStr(1, Sheet1.Cells(r, 1).Value, "Sales") > 0 Then
+    Sheet1.Cells(r, 1).EntireRow.Insert
+    Sheet1.Cells(r, 1).Value = "Profit & Loss"
+    Sheet1.Cells(r, 1).Interior.ColorIndex = 37
+    GoTo Nxt3
+    End If
+    Next r
+Nxt3:
+    k = r
+    For r = k To 1 Step -1
+    If InStr(1, Sheet1.Cells(r, 1).Value, "Non Current Assets -") > 0 Then
+    Sheet1.Cells(r - 1, 1).EntireRow.Insert
+    Sheet1.Cells(r - 1, 1).Value = "Balance Sheet"
+    Sheet1.Cells(r - 1, 1).Interior.ColorIndex = 37
+    GoTo Nxt4
+    End If
+    Next r
+Nxt4:
+    Sheet1.Range("A1").EntireRow.Insert
+Call heading
+End Sub
+
+Sub heading()
+
+Dim i As Long
+Dim r As Range
+Dim rng As Range, rng1 As Range, rng2 As Range
+
+On Error GoTo Endo
+Set rng = Application.InputBox("Select the range from Sheet2 for year,_ include currency/unit", , , , , , , 8)
+Set rng1 = Application.InputBox("Select the range for Companies", , , , , , , 8)
+Set rng2 = Application.InputBox("Select the from Sheet 2 for Quaters, include currency/unit", , , , , , , 8)
+
+
+rng1.copy
+Sheet1.Range("C1").PasteSpecial Transpose:=True
+
+For Each r In Sheet1.Range("A:A")
+    If r.Value = "Balance Sheet" Then
+    rng.copy
+    r.Offset(0, 1).PasteSpecial Transpose:=True
+    End If
+    If r.Value = "Quaterly Result" Then
+    rng2.copy
+    r.Offset(0, 1).PasteSpecial Transpose:=True
+    End If
+Next r
+Endo:
+End Sub
