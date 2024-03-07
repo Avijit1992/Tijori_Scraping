@@ -1,3 +1,4 @@
+Download data from tijori.com
 This VBA code automates the process of collecting financial data from a website and organizing it in an Excel spreadsheet. It leverages the following functionalities:
 
 Data Scraping:
